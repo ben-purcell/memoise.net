@@ -8,6 +8,41 @@ namespace Memoise
 {
     public class MemoiseFactory : IMemoiseFactory
     {
+        private static readonly Lazy<MemoiseFactory> Factory = new Lazy<MemoiseFactory>(() => new MemoiseFactory(), isThreadSafe: true);
+
+        public static TMemoised Create<TMemoised>(TMemoised instance)
+        {
+            return Factory.Value.CreateMemoised<TMemoised>(instance);
+        }
+
+        /// <summary>
+        /// This wraps an instance and memoises each method that has an output. If a method
+        /// has no output (no return value/no ref params/no out params) it will simply forward 
+        /// the call to the underlying instance.
+        /// 
+        /// The implementation for each method that gets generated is as follows:
+        /// 
+        /// TResult SomeMethod(int arg0, string arg1)
+        /// {
+        ///   var key = new Tuple(arg0, arg1);
+        ///   TResult result;
+        ///   if (dict.TryGetValue(key, out result))
+        ///     return result;
+        /// 
+        ///   result = instance.SomeMethod(arg0, arg1);
+        ///   dict.Add(key, result);
+        ///   return result;
+        /// }
+        /// 
+        /// Each method gets its own dictionary, the key is a tuple made up of all params, the value is 
+        /// the result of the underlying method call.
+        /// 
+        /// The reason for using Tuple is that they make good composite key wrappers because of the
+        /// implementation of .Equals
+        /// </summary>
+        /// <typeparam name="TMemoised">The interface to implement</typeparam>
+        /// <param name="instance">An instance that implements the interface</param>
+        /// <returns>A an instance with each method wrapped in a simple memoise pattern</returns>
         public TMemoised CreateMemoised<TMemoised>(TMemoised instance)
         {
             var type = BuildType<TMemoised>();
