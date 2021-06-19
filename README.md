@@ -9,7 +9,7 @@ Console.WriteLine(memoised.SomeMethod(5));  // outputs 'x'
 Console.WriteLine(memoised.SomeMethod(5));  // outputs 'x' - memoised (cached) from last call
 ```
 
-The type is generated at run the time by emitting IL. Methods that have no output are not memoised, calls are simply delegated to the underlying instance.
+The type is generated at run time by emitting IL. Methods that have no output are not memoised, calls are simply delegated to the underlying instance.
 
 The outline for how each memoised method is generated is as follows:
 ```
